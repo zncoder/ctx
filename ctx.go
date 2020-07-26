@@ -67,12 +67,6 @@ func (cx Context) Errorf(format string, args ...interface{}) error {
 	return err
 }
 
-func (cx Context) Wrapf(err error, format string, args ...interface{}) error {
-	err = fmt.Errorf("err:%w "+format, append([]interface{}{err}, args...)...)
-	cx.PrintSkip(2, err.Error())
-	return err
-}
-
 func (cx Context) PrintSkip(skip int, s string) {
 	if tag, ok := cx.Value(logKey{}).(string); ok {
 		log.Output(skip+1, tag+": "+s)
