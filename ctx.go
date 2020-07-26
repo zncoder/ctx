@@ -61,8 +61,8 @@ func (cx Context) Printf(format string, args ...interface{}) {
 	cx.PrintSkip(2, fmt.Sprintf(format, args...))
 }
 
-func (cx Context) Errorf(format string, args ...interface{}) error {
-	err := fmt.Errorf(format, args...)
+func (cx Context) Errorf(err error, format string, args ...interface{}) error {
+	err = fmt.Errorf(format+" [err:%w]", append(args, err))
 	cx.PrintSkip(2, err.Error())
 	return err
 }
