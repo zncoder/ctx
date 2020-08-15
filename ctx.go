@@ -24,8 +24,8 @@ func New(parent context.Context) Context {
 		parent = context.Background()
 	}
 	cc, cancel := context.WithCancel(parent)
-	cc = context.WithValue(cc, closeKey{}, cancel)
-	return Context{cc}
+	cx := Context{cc}
+	return cx.WithValue(closeKey{}, cancel)
 }
 
 // WithTrace associates trace with cx. Name is "family/title".
@@ -33,22 +33,24 @@ func (cx Context) WithTrace(name string) Context {
 	family, title := splitTrace(name)
 	assert.OK(family != "" && title != "")
 	tr := trace.New(family, title)
-	cc := context.WithValue(cx.Context, traceKey{}, tr)
-	cc = context.WithValue(cc, closeKey{}, tr.Finish)
-	return Context{cc}
+	return cx.WithValue(traceKey{}, tr).WithValue(closeKey{}, tr.Finish)
 }
 
 func (cx Context) WithTimeout(timeout time.Duration) Context {
 	cc, cancel := context.WithTimeout(cx.Context, timeout)
-	cc = context.WithValue(cc, closeKey{}, cancel)
-	return Context{cc}
+	cx = Context{cc}
+	return cx.WithValue(closeKey{}, cancel)
 }
 
 // WithLog prints trace to log.
 // To help trace, a random tag is chosen and printed in each log line.
 func (cx Context) WithLog() Context {
 	tag := strconv.FormatInt(int64(rand.Intn(60466176)), 36)
-	return Context{context.WithValue(cx.Context, logKey{}, tag)}
+	return cx.WithValue(logKey{}, tag)
+}
+
+func (cx Context) WithValue(key, value interface{}) Context {
+	return Context{context.WithValue(cx.Context, key, value)}
 }
 
 func (cx Context) Close() {
